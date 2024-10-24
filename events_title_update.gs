@@ -5,7 +5,7 @@ function updateEventsTitle() {
   // sort events in the next two weeks (including today)
   var events = calendar.getEvents(new Date(), new Date(new Date().setDate(new Date().getDate() + 14)));
 
-  // process events
+  // Process events
   for (var i = 0; i < events.length; i++) {
     var event = events[i];
     var title = event.getTitle();
@@ -22,6 +22,16 @@ function updateEventsTitle() {
         if (descLines[line].startsWith("Vehicle Info (Year, Make, Model):")) {
           var vehicleInfo = descLines[line].split(': ')[1];
           var newTitle = vehicleInfo + ' ' + title;
+
+          // if Subaru 2023 or newer, add note regarding mono cam
+          if (vehicleInfo.toLowerCase().includes('subaru')) {
+            if ((vehicleInfo.includes('2023')) ||
+              (vehicleInfo.includes('2024')) ||
+              (vehicleInfo.includes('2025')) ||
+              (vehicleInfo.includes('2026'))) {
+              newTitle = '*CHECK FOR CENTER CAMERA ' + newTitle;
+            }
+          }
 
           // update title
           event.setTitle(newTitle);
