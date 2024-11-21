@@ -1,9 +1,10 @@
 function sortEventsByLocation() {
   // get our default calendar
   var calendar = CalendarApp.getDefaultCalendar();
+  var daysAhead = 30;
 
   // sort events in the next two weeks (including today)
-  var events = calendar.getEvents(new Date(), new Date(new Date().setDate(new Date().getDate() + 14)));
+  var events = calendar.getEvents(new Date(), new Date(new Date().setDate(new Date().getDate() + daysAhead)));
 
   // process events based on location
   for (var i = 0; i < events.length; i++) {
