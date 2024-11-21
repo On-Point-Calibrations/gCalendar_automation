@@ -21,7 +21,7 @@ function updateEventsTitle() {
       // parse out vehicle year make and model
       for (var line = 0; line < descLines.length; line++) {
         if (descLines[line].startsWith("Vehicle Info (Year, Make, Model):")) {
-          var vehicleInfo = descLines[line].split(': ')[1];
+          var vehicleInfo = descLines[line].split(': ')[1].trim();
           var newTitle = vehicleInfo + ' ' + title;
 
           // if Subaru 2023 or newer, add note regarding mono cam
