@@ -1,48 +1,77 @@
 function updateEventsTitle() {
-  // get our default calendar
+  // Get the default calendar
   var calendar = CalendarApp.getDefaultCalendar();
   var daysAhead = 30;
 
-  // sort events in the next two weeks (including today)
+  // Get events in the next 30 days (including today)
   var events = calendar.getEvents(new Date(), new Date(new Date().setDate(new Date().getDate() + daysAhead)));
 
   // Process events
   for (var i = 0; i < events.length; i++) {
     var event = events[i];
     var title = event.getTitle();
-    var updatedEventsCounter = 0;
 
-    // only events starting with the keyword below
+    // Only process events starting with the keyword below
     if (title && title.startsWith("Windshield")) {
       var desc = event.getDescription();
-      var descLines = desc.split('\n');
-      updatedEventsCounter++;
+      var descLines = desc.split('\n').filter(function(line) {
+        return line.trim() !== ''; // Exclude empty or whitespace-only lines
+      });
 
-      // parse out vehicle year make and model
+      var vehicleInfo = null;
+      var captureVehicleInfo = false;
+
+      // Parse out vehicle year, make, and model
       for (var line = 0; line < descLines.length; line++) {
-        if (descLines[line].startsWith("Vehicle Info (Year, Make, Model):")) {
-          var vehicleInfo = descLines[line].split(': ')[1];
-          var newTitle = vehicleInfo + ' ' + title;
+        var currentLine = descLines[line].trim(); // Trim leading/trailing whitespace
 
-          // if Subaru 2023 or newer, add note regarding mono cam
-          if (vehicleInfo.toLowerCase().includes('subaru')) {
-            if ((vehicleInfo.includes('2023')) ||
-              (vehicleInfo.includes('2024')) ||
-              (vehicleInfo.includes('2025')) ||
-              (vehicleInfo.includes('2026'))) {
-              newTitle = '*CHECK FOR CENTER CAMERA ' + newTitle;
-            }
+        if (currentLine.startsWith("Vehicle Info (Year, Make, Model):")) {
+          var parts = currentLine.split(': ');
+          if (parts.length > 1 && parts[1].trim() !== '') {
+            // Vehicle info is on the same line as the label
+            vehicleInfo = parts[1].trim();
+          } else {
+            // Start capturing vehicle info from the next lines
+            captureVehicleInfo = true;
           }
+          continue; // Skip the current line
+        }
 
-          // update title
-          event.setTitle(newTitle);
-
-          // log
-          Logger.log("Event starting @ " + event.getStartTime() + " have been updated to: " + newTitle + "( old title: " + title + ")");
+        if (captureVehicleInfo) {
+          if (currentLine === "" || currentLine.startsWith("Vin#:")) {
+            // Stop capturing if the line is empty or it's the start of a new section
+            break;
+          }
+          // Append valid vehicle info lines
+          if (!vehicleInfo) {
+            vehicleInfo = currentLine; // First line of vehicle info
+          } else {
+            vehicleInfo += ' ' + currentLine; // Concatenate additional lines
+          }
         }
       }
-    }
 
-    // leave all other events as-is
+      if (vehicleInfo) {
+        var normalizedVehicleInfo = vehicleInfo.toLowerCase(); // Normalize for consistent checks
+        var newTitle = vehicleInfo + ' ' + title;
+
+        // Check for Subaru and its variations (subaru, suby, subie)
+        if (/subaru|suby|subie/.test(normalizedVehicleInfo)) {
+          if (normalizedVehicleInfo.includes('2023') ||
+              normalizedVehicleInfo.includes('2024') ||
+              normalizedVehicleInfo.includes('2025') ||
+              normalizedVehicleInfo.includes('2026')) {
+            newTitle = '*CHECK FOR CENTER CAMERA ' + newTitle;
+          }
+        }
+
+        // Update event title
+        event.setTitle(newTitle);
+
+        // Log the update
+        Logger.log("Event starting @ " + event.getStartTime() + " has been updated to: " + newTitle + " (old title: " + title + ")");
+      }
+    }
+    // Leave all other events as-is
   }
 }
