@@ -13,7 +13,7 @@ function sortEventsByLocation() {
     var title = event.getTitle();
     var updatedEventsCounter = 0;
 
-    if (title && title.startsWith("Windshield")) {
+    if (title && title.includes("Windshield Calibration")) {
       // if location is paradise
       if (location && location.toLowerCase().includes("paradise")) {
         // Change the color of the event for visual distinction
@@ -24,11 +24,11 @@ function sortEventsByLocation() {
       }
       // else leave color as-is
     }
-    else if ((title && title.startsWith("Programming")) ||
-            (title && title.startsWith("Inspection")) ||
-            (title && title.startsWith("Safety System Calibration")) ||
-            (title && title.startsWith("Pre-Scan")) ||
-            (title && title.startsWith("Post-Scan"))) {
+    else if ((title && title.includes("Programming")) ||
+            (title && title.includes("Inspection")) ||
+            (title && title.includes("Safety System Calibration")) ||
+            (title && title.includes("Pre-Scan")) ||
+            (title && title.includes("Post-Scan"))) {
       // change the color of all non-windshield events to yellow
       event.setColor(CalendarApp.EventColor.YELLOW);
       // log number of processed events
